@@ -1,0 +1,8 @@
+[Unit]
+Description=Pi Thing
+
+[Service]
+ExecStart=/usr/bin/python /home/crblackw/projects/web_led/webapp/main.py
+
+[Install]
+WantedBy=multi-user.target
