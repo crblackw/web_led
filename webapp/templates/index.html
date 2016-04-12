@@ -2,84 +2,150 @@
 <html class="no-js" lang="">
 
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title></title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <!-- Place favicon.ico in the root directory -->
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <!-- Place favicon.ico in the root directory -->
 </head>
 
 <body>
-  <!--[if lt IE 8]>
+    <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-  <!-- Add your site or application content here -->
-  <div class="jumbotron">
+    <!-- Add your site or application content here -->
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Raspberry Pi Internet 'Thing'</h1>
+            <p>Hello world! Welcome to my internet thing!</p>
+        </div>
+    </div>
+
+
     <div class="container">
-      <h1>Raspberry Pi Internet 'Thing'</h1>
-      <p>Hello world! Welcome to my internet thing!</p>
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Switch: <span class="label label-default" id='switch_value'></span></h3>
+            </div>
+            <div class="col-md-6">
+                <h3>LED:</h3>
+                <p>
+                    <button type='button' class='btn btn-default' id='led_on'>LED ON</button>
+                    <button type='button' class='btn btn-default' id='led_off'>LED OFF</button>
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h3>Temperature:</h3>
+              <canvas id="temperature_chart" width="400" height="400"></canvas>
+          </div>
+          <div class="col-md-6">
+            <h3>Light:</h3>
+              <canvas id="light_chart" width="400" height="400"></canvas>
+          </div>
+        </div>
+
     </div>
-  </div>
 
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script>
+        window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')
+    </script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Chart.min.js') }}"></script>
+    <script>
+        // Attaches button click handlers.
+        $(document).ready(function() {
+            $('#led_on').click(function() {
+                console.log('LED on!');
+                $.post('/led/1');
+            });
+            $('#led_off').click(function() {
+                console.log('LED off!');
+                $.post('led/0');
+            });
+        });
 
-  <div class="container">
-    <!-- Example row of columns -->
-    <div class="row">
-      <div class="col-sm-6">
-        <h2>Switch: <span class="label label-default" id='switch_value'></span></h2>
-      </div>
-      <div class="col-sm-6">
-        <h2>LED:</h2>
-        <p>
-          <button type='button' class='btn btn-default' id='led_on'>LED ON</button>
-          <button type='button' class='btn btn-default' id='led_off'>LED OFF</button>
-        </p>
-     </div>
-    </div>
-  </div>
+        // Get context with jQuery - using jQuery's .get() method.
+        var ctx = $("#temperature_chart").get(0).getContext("2d");
+        // This will get the first returned node in the jQuery collection
+        var temperatureChart = new Chart(ctx).Line({
+            labels: [],
+            datasets: [
+                {
+                    label: "Temperature [C]",
+                    fillColor: "rgba(151,187,205,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: []
+                }
+            ]
+        });
 
-  <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
-  <script>
-    window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')
-  </script>
-  <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-  <script>
-    // Attaches button click handlers.
-    $(document).ready(function() {
-      $('#led_on').click(function() {
-        console.log('LED on!');
-        $.post('/led/1');
-      });
-      $('#led_off').click(function() {
-        console.log('LED off!');
-        $.post('led/0');
-      });
-    });
+        // Get context with jQuery - using jQuery's .get() method.
+        var ctx = $("#light_chart").get(0).getContext("2d");
+        // This will get the first returned node in the jQuery collection
+        var lightChart = new Chart(ctx).Line({
+            labels: [],
+            datasets: [
+                {
+                    label: "Light",
+                    fillColor: "rgba(151,187,205,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: []
+                }
+            ]
+        });
 
-    function updateSwitch(switchValue) {
-      if (switchValue === '1') {
-        $('#switch_value').text('On');
-        $('#switch_value').toggleClass('label-default', false);
-        $('#switch_value').toggleClass('label-danger', true);
-      }
-      else if (switchValue === '0'){
-        $('#switch_value').text('Off');
-        $('#switch_value').toggleClass('label-default', true);
-        $('#switch_value').toggleClass('label-danger', false);
-      }
-    }
+        function updateSwitch(switchValue) {
+            if (switchValue === 1) {
+                $('#switch_value').text('On');
+                $('#switch_value').toggleClass('label-default', false);
+                $('#switch_value').toggleClass('label-danger', true);
+            } else if (switchValue === 0) {
+                $('#switch_value').text('Off');
+                $('#switch_value').toggleClass('label-default', true);
+                $('#switch_value').toggleClass('label-danger', false);
+            }
+        }
 
-    // Setup the switch server sent endpoint.
-    var switchSource = new EventSource("{{ url_for('switch') }}");
-    switchSource.onmessage = function(e) {
-      updateSwitch(e.data);
-    }
+        function updateThing(thingState) {
+          updateSwitch(thingState.switch);
+          console.log('Temp: ' + thingState.temperature)
+          console.log('Light: ' + thingState.light)
+          temperatureChart.addData([thingState.temperature],
+            new Date().toLocaleTimeString());
+          if (temperatureChart.datasets[0].points.length > 20) {
+            temperatureChart.removeData();
+          }
+          lightChart.addData([thingState.light],
+            new Date().toLocaleTimeString());
+          if (lightChart.datasets[0].points.length > 20) {
+            lightChart.removeData();
+          }
+        }
 
-    updateSwitch('{{ switch }}')
-  </script>
+        // Setup the switch server sent endpoint.
+        var thingSource = new EventSource("{{ url_for('thing') }}");
+        thingSource.onmessage = function(e) {
+            updateThing($.parseJSON(e.data));
+        }
+
+        updateSwitch('{{ switch }}')
+    </script>
 
 </body>
 
